@@ -20,54 +20,38 @@ var AddParentNull_Scale_Checked = true;
 
 (function (thisObj) {
 
-	// パネルUIを作成する
-	function Nulltilities_buildUI(thisObj) {
-		var myPanel = (thisObj instanceof Panel)
-			? thisObj
-			: new Window("palette", "Nulltilities", undefined, { resizeable: true });
-		
-		//ボタン追加:ヌル化
-		var group_Nullize = myPanel.add("panel", undefined, "ヌル化");
-		group_Nullize.alignChildren = ["fill", "top"];
-		var btn = group_Nullize.add("button", undefined, "実行");
-		btn.onClick = function () { Nulltilities_Nullize(); return; };
+	//ボタン追加:ヌル化
+	var group_Nullize = thisObj.add("panel", undefined, "ヌル化");
+	group_Nullize.alignChildren = ["fill", "top"];
+	var btn = group_Nullize.add("button", undefined, "実行");
+	btn.onClick = function () { Nulltilities_Nullize(); return; };
 
-		//UIグループ:親ヌル追加
-		var group_AddParentNull = myPanel.add("panel", undefined, "親ヌル追加");
-		group_AddParentNull.alignChildren = ["fill", "top"];
+	//UIグループ:親ヌル追加
+	var group_AddParentNull = thisObj.add("panel", undefined, "親ヌル追加");
+	group_AddParentNull.alignChildren = ["fill", "top"];
 
-		//チェックボックス:回転
-		var checkRotation = group_AddParentNull.add("checkbox", undefined, "回転");
-		checkRotation.value = AddParentNull_Rotation_Checked;
-		checkRotation.onClick = function() {
-			AddParentNull_Rotation_Checked = this.value;
-		}
-
-		//チェックボックス:スケール
-		var checkScale = group_AddParentNull.add("checkbox", undefined, "スケール");
-		checkScale.value = AddParentNull_Scale_Checked;
-		checkScale.onClick = function() {
-			AddParentNull_Scale_Checked = this.value;
-		}
-
-		//実行ボタン
-		var btn = group_AddParentNull.add("button", undefined, "実行");
-		btn.onClick = function () { Nulltilities_AddParentNull(); return; };
-		
-		// サイズ変更に対応
-		myPanel.layout.layout(true);
-		myPanel.layout.resize();
-		myPanel.onResizing = myPanel.onResize = function () { this.layout.resize(); };
-
-		return myPanel;
+	//チェックボックス:回転
+	var checkRotation = group_AddParentNull.add("checkbox", undefined, "回転");
+	checkRotation.value = AddParentNull_Rotation_Checked;
+	checkRotation.onClick = function() {
+		AddParentNull_Rotation_Checked = this.value;
 	}
 
-	// 実行
-	var myPal = Nulltilities_buildUI(thisObj);
-	if (myPal instanceof Window) {
-		myPal.center();
-		myPal.show();
+	//チェックボックス:スケール
+	var checkScale = group_AddParentNull.add("checkbox", undefined, "スケール");
+	checkScale.value = AddParentNull_Scale_Checked;
+	checkScale.onClick = function() {
+		AddParentNull_Scale_Checked = this.value;
 	}
+
+	//実行ボタン
+	var btn = group_AddParentNull.add("button", undefined, "実行");
+	btn.onClick = function () { Nulltilities_AddParentNull(); return; };
+	
+	// サイズ変更に対応
+	thisObj.layout.layout(true);
+	thisObj.layout.resize();
+	thisObj.onResizing = thisObj.onResize = function () { this.layout.resize(); };
 
 })(this);
 
