@@ -2,6 +2,10 @@
  GeneratePuppetRig.jsx
  for Japanese only
 
+ このスクリプトは古いバージョンです。
+ 新しいバージョンをGitHubよりダウンロードして下さい。
+ https://github.com/KoheiMizusaki/After-Effects-Scripts/tree/main/Scripts/ScriptUI%20Panels
+
  パペットピンエフェクトのピンの位置にヌルレイヤーを配置し、ピンの参照先として設定する機能を提供します。
  パペットピンが設定されているレイヤーを選択し、ファイル→スクリプト から実行して下さい。
  プロジェクト内に"ヌル 1"が存在している必要があります。
@@ -21,16 +25,16 @@ function GeneratePuppetRig()
 		return false;
 	}
 
-	var layer = comp.selectedLayers[0];
-	if (layer == null) {
-		alert("レイヤーが未指定です。");
+	var sourceLayer = comp.selectedLayers[0];
+	if (sourceLayer == null) {
+		alert("レイヤーを選択してから実行して下さい。");
 		return false;
 	}
 	
 	// パペットエフェクトを特定する
-	var effects = layer.property("Effects");
+	var effects = sourceLayer.property("Effects");
 	if (effects == null) {
-		alert("エフェクトがありません。");
+		alert("パペットエフェクトがありません。");
 		return false;
 	}
 
@@ -87,9 +91,20 @@ function GeneratePuppetRig()
 		return false;
 	}
 
-	//アンドゥグループを開始
+	// アンドゥグループを開始
 	app.beginUndoGroup("GeneratePuppetRig");
 
+	// 原点レイヤーを作成する
+	var originLayer = comp.layers.add(RigSourceItem);
+	originLayer.name = RigNamePrefix + sourceLayer.name + "_Origin";
+	originLayer.position.setValue(sourceLayer.position.value);
+	originLayer.anchorPoint.setValue(sourceLayer.anchorPoint.value);
+	originLayer.scale.setValue(sourceLayer.scale.value);
+	originLayer.opacity.setValue(0);
+
+	// ソースレイヤーの位置にエクスプレッションを適用する
+	sourceLayer.position.expression = "thisComp.layer(\"" + originLayer.name + "\").position";
+	
 	// Mesh Atomでループ処理する
 	for(var i = 1; i <= mesh.numProperties; ++i) {
 		if(mesh.property(i).matchName != "ADBE FreePin3 Mesh Atom") {
@@ -109,19 +124,23 @@ function GeneratePuppetRig()
 		for (var j = pins.numProperties; j >= 1; --j) {
 			var pin = pins.property(j);
 
-			//ピンタイプが位置(1)以外の場合はスキップ
+			// ピンタイプが位置(1)以外の場合はスキップ
 			if(pin.property("ADBE FreePin3 PosPin Type").value != 1) continue;
 
+			// ピンの名前と位置を変数へ代入する
 			var pinName = pin.name;
-			var pinPosition = pin.property("Position").value;
+			var pinPosition = pin.position.value;
 
+			// ピンの参照先レイヤーを作成する
 			newLayer = comp.layers.add(RigSourceItem);
+			newLayer.parent = originLayer;
 			newLayer.name = RigNamePrefix + pinName;
 			newLayer.position.setValue(pinPosition);
 			newLayer.anchorPoint.setValue([0,0]);
 			newLayer.opacity.setValue(0);
 	
-			pin.property("Position").expression = "target = thisComp.layer(\"" + newLayer.name + "\");\ntarget.parent.toComp(target.position);";
+			// ピンの位置にエクスプレッションを適用する
+			pin.position.expression = "target = thisComp.layer(\"" + newLayer.name + "\");\norigin = thisComp.layer(\"" + originLayer.name + "\");\ntarget.parent.toComp(target.position) - origin.position + origin.anchorPoint;";
 		}
 	}
 
